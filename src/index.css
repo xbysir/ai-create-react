@@ -1,0 +1,76 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --primary: #3b82f6;
+  --secondary: #64748b;
+  --background: #f8fafc;
+  --text: #1e293b;
+  --border: #e2e8f0;
+  --hover: #2563eb;
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.hover\:text-primary:hover {
+  color: var(--hover);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.border-primary {
+  border-color: var(--primary);
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+div,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+ul,
+li,
+dl,
+dt,
+a,
+input,
+button,
+textarea,
+select {
+  margin: 0;
+  padding: 0;
+  outline: none;
+}
+ul {
+  list-style: none;
+}
+
+a,
+a:focus,
+a:hover {
+  color: inherit;
+  outline: none;
+  text-decoration: none;
+}
+
+div:focus {
+  outline: none;
+}
+span:focus {
+  outline: none;
+}
