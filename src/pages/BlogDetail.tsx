@@ -71,9 +71,24 @@ const relatedPosts = [
   },
 ];
 
+interface Comment {
+  id: number;
+  content: string;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  date: string;
+  likes: number;
+}
+
 const BlogDetail: React.FC = () => {
+  // const { id } = useParams<{ id: string }>();
   const [activeHeading, setActiveHeading] = React.useState<string>("");
   const [showComments, setShowComments] = React.useState(false);
+  const [comments, setComments] = React.useState<Comment[]>([]);
+  const [newComment, setNewComment] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
 
   // 提取文章标题
   const extractHeadings = (content: string) => {
@@ -255,33 +270,73 @@ const BlogDetail: React.FC = () => {
                 />
                 <div className="flex-1">
                   <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
                     placeholder="写下你的评论..."
                     className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
-                  <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                    发表评论
+                  <button 
+                    onClick={async () => {
+                      if (!newComment.trim()) return;
+                      setSubmitting(true);
+                      try {
+                        const newCommentObj: Comment = {
+                          id: Date.now(),
+                          content: newComment,
+                          user: {
+                            name: "当前用户",
+                            avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&h=50&fit=crop"
+                          },
+                          date: new Date().toLocaleDateString(),
+                          likes: 0
+                        };
+                        setComments(prev => [newCommentObj, ...prev]);
+                        setNewComment("");
+                      } catch (error) {
+                        console.error("提交评论失败:", error);
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    disabled={submitting || !newComment.trim()}
+                    className={`mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors ${submitting || !newComment.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`}
+                  >
+                    {submitting ? "提交中..." : "发表评论"}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-4">
-                {[1, 2].map((_, index) => (
-                  <div key={index} className="flex space-x-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex space-x-4">
                     <img
-                      src={`https://images.unsplash.com/photo-${index + 1}?w=50&h=50&fit=crop`}
-                      alt="评论者头像"
+                      src={comment.user.avatar}
+                      alt={`${comment.user.name}的头像`}
                       className="w-10 h-10 rounded-full"
                     />
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium">用户{index + 1}</span>
-                        <span className="text-sm text-gray-500">2天前</span>
+                        <span className="font-medium">{comment.user.name}</span>
+                        <span className="text-sm text-gray-500">{comment.date}</span>
                       </div>
-                      <p className="mt-1 text-gray-700">这篇文章写得很好，对我理解React 19的新特性很有帮助！</p>
+                      <p className="mt-1 text-gray-700">{comment.content}</p>
                       <div className="mt-2 flex space-x-4 text-sm text-gray-500">
-                        <button className="hover:text-blue-500">回复</button>
-                        <button className="hover:text-blue-500">点赞</button>
+                        <button 
+                          onClick={() => {
+                            setComments(prev =>
+                              prev.map(c =>
+                                c.id === comment.id
+                                  ? { ...c, likes: c.likes + 1 }
+                                  : c
+                              )
+                            );
+                          }}
+                          className="hover:text-blue-500 flex items-center space-x-1"
+                        >
+                          <span>点赞</span>
+                          <span>({comment.likes})</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -304,7 +359,7 @@ const BlogDetail: React.FC = () => {
                 <div className="flex items-start space-x-4">
                   <div className="w-24 h-24 rounded-lg overflow-hidden">
                     <img
-                      src={`https://images.unsplash.com/photo-${post.id}?w=200&h=200&fit=crop`}
+                      src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=200&h=200&fit=crop"
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />

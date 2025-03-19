@@ -19,6 +19,15 @@ const MainLayout: React.FC = () => {
       key: '/blog',
       label: <Link to="/blog" className="nav-link">博客</Link>,
     },
+    {
+      key: '/docs',
+      label: <Link to="/docs" className="nav-link">文档</Link>,
+    },
+    {
+      key: '/projects',
+      label: <Link to="/projects" className="nav-link">项目</Link>,
+    },
+
   ];
 
   return (
