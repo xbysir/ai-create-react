@@ -91,11 +91,7 @@ const BlogList: React.FC = () => {
               <button
                 key={tag}
                 onClick={() => handleTagClick(tag)}
-                className={`px-4 py-2 rounded-full transition-colors ${
-                  selectedTag === tag
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 hover:bg-primary hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-full transition-colors ${selectedTag === tag ? "bg-[#1677ff] text-white" : "bg-gray-100 hover:bg-[#1677ff] hover:text-white"}`}
               >
                 {tag}
               </button>

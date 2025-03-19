@@ -8,12 +8,18 @@ interface BlogPost {
   date: string;
   tags: string[];
   readTime: string;
-  author: string;
+  author: {
+    name: string;
+    avatar: string;
+    bio: string;
+  };
+  coverImage: string;
 }
 
 const blogPost: BlogPost = {
   id: 1,
   title: "React 19 新特性详解",
+  coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=400&fit=crop",
   content: `React 19 带来了一系列重大更新，这些创新将进一步提升React应用的性能和开发效率。
 
 ## 增强的并发渲染
@@ -44,7 +50,11 @@ React 19带来了一系列新的Hooks，为开发者提供更强大的工具：
   date: "2024-01-15",
   tags: ["React", "JavaScript", "前端开发"],
   readTime: "8 min",
-  author: "技术团队",
+  author: {
+    name: "技术团队",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+    bio: "专注于前端技术研究和分享，致力于提升开发体验和应用性能。"
+  },
 };
 
 const relatedPosts = [
@@ -62,16 +72,83 @@ const relatedPosts = [
 ];
 
 const BlogDetail: React.FC = () => {
+  const [activeHeading, setActiveHeading] = React.useState<string>("");
+  const [showComments, setShowComments] = React.useState(false);
+
+  // 提取文章标题
+  const extractHeadings = (content: string) => {
+    const headings = content.split("\n\n")
+      .filter(p => p.startsWith("##"))
+      .map(h => ({
+        title: h.replace(/^#{2,3}\s/, "").trim(),
+        level: h.startsWith("###") ? 3 : 2
+      }));
+    return headings;
+  };
+
+  const headings = extractHeadings(blogPost.content);
+
+  // 监听滚动更新目录高亮
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const headingElements = document.querySelectorAll("h2, h3");
+      let current = "";
+      
+      headingElements.forEach((heading) => {
+        const rect = heading.getBoundingClientRect();
+        if (rect.top <= 100) {
+          current = heading.textContent || "";
+        }
+      });
+      
+      setActiveHeading(current);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
       <div className="max-w-4xl mx-auto">
+        {/* 封面图片 */}
+        <div className="mb-8 rounded-xl overflow-hidden">
+          <img
+            src={blogPost.coverImage}
+            alt={blogPost.title}
+            className="w-full h-64 object-cover"
+          />
+        </div>
         {/* 文章头部 */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">{blogPost.title}</h1>
-          <div className="flex items-center space-x-4 text-gray-500">
-            <span>作者：{blogPost.author}</span>
+          {/* 作者信息卡片 */}
+          <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
+            <img
+              src={blogPost.author.avatar}
+              alt={blogPost.author.name}
+              className="w-12 h-12 rounded-full"
+            />
+            <div>
+              <h3 className="font-medium text-gray-900">{blogPost.author.name}</h3>
+              <p className="text-sm text-gray-500">{blogPost.author.bio}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4 mt-4 text-gray-500">
             <span>发布于：{blogPost.date}</span>
             <span>阅读时间：{blogPost.readTime}</span>
+            <div className="flex space-x-2">
+              <button className="text-gray-500 hover:text-blue-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              </button>
+              <button className="text-gray-500 hover:text-red-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -87,8 +164,33 @@ const BlogDetail: React.FC = () => {
           ))}
         </div>
 
+        {/* 文章目录 */}
+        <div className="fixed top-32 right-8 w-48 bg-white p-4 rounded-lg shadow-lg hidden lg:block">
+          <h4 className="text-lg font-semibold mb-4">目录</h4>
+          <nav>
+            {headings.map((heading, index) => (
+              <a
+                key={index}
+                href={`#${heading.title}`}
+                className={`block py-1 text-sm ${heading.level === 3 ? 'pl-4' : ''} ${activeHeading === heading.title ? 'text-blue-500 font-medium' : 'text-gray-600 hover:text-blue-500'}`}
+              >
+                {heading.title}
+              </a>
+            ))}
+          </nav>
+        </div>
+
         {/* 文章内容 */}
         <article className="prose prose-lg max-w-none mb-12">
+          {/* 阅读进度条 */}
+          <div className="fixed top-0 left-0 w-full h-1 bg-gray-200">
+            <div
+              className="h-full bg-blue-500 transition-all duration-200"
+              style={{
+                width: `${(window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100}%`
+              }}
+            />
+          </div>
           {blogPost.content.split("\n\n").map((paragraph, index) => {
             if (paragraph.startsWith("##")) {
               const level = paragraph.startsWith("###") ? 3 : 2;
@@ -131,6 +233,64 @@ const BlogDetail: React.FC = () => {
           })}
         </article>
 
+        {/* 评论区 */}
+        <div className="border-t border-gray-200 pt-8 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">评论</h2>
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="text-blue-500 hover:text-blue-600"
+            >
+              {showComments ? "收起评论" : "展开评论"}
+            </button>
+          </div>
+          
+          {showComments && (
+            <div className="space-y-6">
+              <div className="flex space-x-4">
+                <img
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&h=50&fit=crop"
+                  alt="用户头像"
+                  className="w-10 h-10 rounded-full"
+                />
+                <div className="flex-1">
+                  <textarea
+                    placeholder="写下你的评论..."
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                  <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    发表评论
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {[1, 2].map((_, index) => (
+                  <div key={index} className="flex space-x-4">
+                    <img
+                      src={`https://images.unsplash.com/photo-${index + 1}?w=50&h=50&fit=crop`}
+                      alt="评论者头像"
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">用户{index + 1}</span>
+                        <span className="text-sm text-gray-500">2天前</span>
+                      </div>
+                      <p className="mt-1 text-gray-700">这篇文章写得很好，对我理解React 19的新特性很有帮助！</p>
+                      <div className="mt-2 flex space-x-4 text-sm text-gray-500">
+                        <button className="hover:text-blue-500">回复</button>
+                        <button className="hover:text-blue-500">点赞</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 相关文章 */}
         <div className="border-t border-gray-200 pt-8">
           <h2 className="text-2xl font-bold mb-6">相关文章</h2>
@@ -139,12 +299,23 @@ const BlogDetail: React.FC = () => {
               <Link
                 key={post.id}
                 to={`/blog/${post.id}`}
-                className="block p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+                className="group block p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
               >
-                <h3 className="text-xl font-semibold mb-2 hover:text-primary transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600">{post.summary}</p>
+                <div className="flex items-start space-x-4">
+                  <div className="w-24 h-24 rounded-lg overflow-hidden">
+                    <img
+                      src={`https://images.unsplash.com/photo-${post.id}?w=200&h=200&fit=crop`}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-600 line-clamp-2">{post.summary}</p>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
