@@ -1,10 +1,10 @@
 import React from "react";
 import { docSections } from "../data/docs";
 
-const Docs: React.FC = () => {
+const Docs: React.FC = () => { 
   const [activeSection, setActiveSection] = React.useState(docSections[0].id);
-
-  return (
+    
+  return ( 
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
